@@ -1,0 +1,89 @@
+# k8s cluster name
+name: acme-backstage-provider
+display: Example Backstage Entity Provider
+cluster: mars
+
+server: 
+  port: 8000
+  host: 0.0.0.0
+  
+backstage:
+  name: acme-portal
+  annnotations: {} 
+  groups: 
+    - apiVersion: backstage.io/v1alpha1
+      kind: Group
+      metadata:
+        name: acme-core
+        description: The Example company
+        links:
+          - url: https://example.com/
+            title: Website
+      spec:
+        type: organization
+        profile:
+          displayName: Axyom.Core
+        children: ["platform"]
+    - apiVersion: backstage.io/v1alpha1
+      kind: Group
+      metadata:
+        name: platform
+        description: Platform team
+        links:
+          - url: https://github.com/example
+            title: GitHub example root
+      spec:
+        type: team
+        profile:
+          displayName: Platform
+        parent: acme-core 
+        children: []
+  users:
+    - apiVersion: backstage.io/v1alpha1
+      kind: Group
+      metadata:
+        name: dimitar.georgievski
+      spec: 
+        profile:
+          display: Dimitar Georgievski
+          email: dgeorgievski@example.com
+        member_of: ["platform"]
+  domains:
+    - apiVersion: backstage.io/v1alpha1
+      kind: Domain
+      metadata:
+        name: smf
+        description: Everything related to ACME 
+        links:
+          - url: https://acme.net/
+            title: Acme main site
+      spec:
+        owner: platform
+
+nats:
+  proxy_url: http://localhost:8080/api/v1/event
+
+kube:
+  use_tls: false
+  resources:
+    - name: deployment
+      namespaces:
+        - acme
+      label_selectors:
+        - app.kubernetes.io/part-of=acme
+      field_selectors: []
+      event_type: "acme.portal.backstage.deployment.v1"  
+      
+    - name: pod
+      namespaces: []
+      label_selectors:
+        - app.kubernetes.io/component=postgres-cluster
+      field_selectors: []
+      event_type: "acme.portal.backstage.pod.v1"
+
+    - name: statefulsets
+      namespaces: []
+      label_selectors:
+        - app.kubernetes.io/component=postgres-cluster
+      field_selectors: []
+      event_type: "acme.portal.backstage.sts.v1"

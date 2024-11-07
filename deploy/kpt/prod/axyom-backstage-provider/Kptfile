@@ -1,0 +1,41 @@
+apiVersion: kpt.dev/v1
+kind: Kptfile
+metadata:
+  name: acme-backstage-provider
+  annotations:
+    config.kubernetes.io/local-config: "true"
+  labels:
+    app: acme-backstage-provider
+    app.kubernetes.io/managed-by: kpt
+    app.kubernetes.io/name: acme-backstage-provider
+    app.kubernetes.io/part-of: acme-portal
+  namespace: acme-portal
+info:
+  description: Custom Backstage Entity Provider
+  site: acme-portal.apps.ci-cd.casa.dev
+  keywords:
+    - backstage
+    - portal
+    - entity
+    - provider
+pipeline:
+  mutators:
+    - name: set labels
+      image: gcr.io/kpt-fn/set-labels:v0.2.0
+      configMap:
+        app: acme-backstage-provider
+        app.kubernetes.io/managed-by: kpt
+        app.kubernetes.io/name: acme-backstage-provider
+        app.kubernetes.io/part-of: acme-portal
+        app.kubernetes.io/component: entity-provider
+    - name: set namespace
+      image: gcr.io/kpt-fn/set-namespace:v0.4.1
+      configMap:
+        namespace: acme-portal
+  validators:
+    - name: validate manifests
+      image: 'gcr.io/kpt-fn/kubeval:v0.3.0'
+      configMap:
+        skip_kinds: 'Route,ResourceGroup'
+        strict: "true"
+        ignore_missing_schemas: "true"

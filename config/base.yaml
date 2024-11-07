@@ -1,0 +1,29 @@
+# k8s cluster name
+name: acme-backstage-provider
+display: example Backstage Entity Provider
+cluster: apple
+
+server:
+  port: 8000
+  host: 0.0.0.0
+  
+backstage:
+  name: example-portal
+  # Backstage annotations requied to make Entities visible in the Catalog.  
+  annotations:
+    backstage.io/managed-by-location: "url: http://acme-backstage-provider.example-portal.svc/api/v1/entities"
+    backstage.io/managed-by-origin-location: "url: http://acme-backstage-provider.example-portal.svc/api/v1/entities"
+  groups: {}
+
+nats:
+  # proxy_url: http://localhost:9080
+  proxy_url: http://localhost:8080/api/v1/event
+
+cache:
+  def_channel_size: 32
+  poll_interval: 30
+  purge_cache_interval: 45
+  
+kube:
+  use_tls: false
+  resources: []

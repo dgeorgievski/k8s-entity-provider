@@ -1,0 +1,45 @@
+# This Task will do a helm upgrade based on the given helm repo and chart
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: kpt-deploy
+  labels:
+    app.kubernetes.io/version: "0.2"
+    app.kubernetes.io/component: tekton-task
+    app.kubernetes.io/managed-by: kpt
+    app.kubernetes.io/part-of: axyomcore-portal
+    app: axyom-backstage-provider-tekton
+    app.kubernetes.io/name: axyom-backstage-provider-tekton
+  annotations:
+    5g-core.casa-systems.com/taskType: deploy
+    tekton.dev/categories: Deployment
+    tekton.dev/tags: kpt
+    tekton.dev/platforms: "linux/amd64,linux/s390x,linux/ppc64le,linux/arm64"
+spec:
+  description: Deploy kpt package
+  params:
+    - name: path
+      description: "path to kpt Package"
+    - name: image
+      default: gcr.io/kpt-dev/kpt:v1.0.0-beta.55
+    - name: output
+      description: "Output format, must be one of events, table, json (default events)"
+      default: events
+    - name: request-timeout
+      description: "The length of time to wait before giving up on a single server request. \nNon-zero values should contain a corresponding time unit (e.g. 1s, 2m, 3h). \nA value of zero means don't timeout requests. (default \"0\")\n"
+      default: "0"
+    - name: reconcile-timeout
+      description: |
+        Timeout threshold for waiting for all resources to reach the Current status.
+      default: 2m
+  workspaces:
+    - name: source
+  steps:
+    - name: kpt
+      image: $(params.image)
+      args:
+        - live apply
+        - --output $(params.table)
+        - --reconcile-timeout $(params.reconcile-timeout)
+        - --request-timeout $(params.request-timeout)
+        - $(params.path)

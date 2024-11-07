@@ -1,0 +1,59 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: axyom-backstage-provider-push
+  labels:
+    app: axyom-backstage-provider-tekton
+    app.kubernetes.io/managed-by: kpt
+    app.kubernetes.io/name: axyom-backstage-provider-tekton
+    app.kubernetes.io/part-of: axyomcore-portal
+spec:
+  params:
+  - name: git-repo-url
+    description: The git repository url
+  - name: git-repo-name
+    description: The name of the deployment to be created / patched
+  - name: git-revision
+    description: CHeckout short SHA
+  - name: git-tag
+    description: tag name for Push Tag Hook event.
+  - name: git-event-name
+    description: GitLab WebHook name used in Pipelines to filter tasks
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      generateName: $(tt.params.git-repo-name)-$(tt.params.git-event-name)-
+      labels:
+        5g-core.casa-systems.com/project: app-health-5g
+        5g-core.casa-systems.com/pipelineType: build-deploy
+        5g-core.casa-systems.com/cluster: ci-cd
+    spec:
+      serviceAccountName: pipeline
+      pipelineRef:
+        name: axyom-backstage-provider-push
+      params:
+      - name: repo-url
+        value: $(tt.params.git-repo-url)
+      - name: image-registry
+        value: registry.gitlab.casa-systems.com/dimitar.georgievski/axyom-backstage-provider
+      - name: image-tag
+        value: $(tt.params.git-tag)
+      - name: git-revision
+        value: $(tt.params.git-tag)
+      - name: release-name
+        value: $(tt.params.git-tag)
+      - name: git-event-name
+        value: $(tt.params.git-event-name)
+      workspaces:
+      - name: shared-data
+        volumeClaimTemplate:
+          spec:
+            accessModes:
+            - ReadWriteOnce
+            resources:
+              requests:
+                storage: 20Gi
+      - name: docker-credentials
+        secret:
+          secretName: docker-axyom-backstage-provider-credentials

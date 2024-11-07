@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: acme-backstage-provider
+  labels:
+    app: acme-backstage-provider
+    app.kubernetes.io/component: entity-provider
+    app.kubernetes.io/managed-by: kpt
+    app.kubernetes.io/name: acme-backstage-provider
+    app.kubernetes.io/part-of: acme-portal
+  namespace: acme-portal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: acme-backstage-provider
+      app: acme-backstage-provider
+      app.kubernetes.io/component: entity-provider
+      app.kubernetes.io/managed-by: kpt
+      app.kubernetes.io/part-of: acme-portal
+  strategy:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: acme-backstage-provider
+        app: acme-backstage-provider
+        app.kubernetes.io/component: entity-provider
+        app.kubernetes.io/managed-by: kpt
+        app.kubernetes.io/part-of: acme-portal
+    spec:
+      containers:
+      - name: acme-backstage-provider
+        image: dgeorgievski/acme-backstage-provider:0.1.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        env:
+        - name: APP_ENVIRONMENT
+          value: production
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: http
+            scheme: HTTP
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: http
+            scheme: HTTP
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        securityContext: {}
+        volumeMounts:
+        - mountPath: /app/config/
+          name: config
+          readOnly: true
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      securityContext: {}
+      serviceAccount: acme-backstage-provider
+      serviceAccountName: acme-backstage-provider
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: config
+        configMap:
+          name: acme-backstage-provider

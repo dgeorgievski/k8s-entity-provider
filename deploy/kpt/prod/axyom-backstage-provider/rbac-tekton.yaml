@@ -1,0 +1,47 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: acme-backstage-provider-reader
+  labels:
+    app: acme-backstage-provider
+    app.kubernetes.io/component: entity-provider
+    app.kubernetes.io/managed-by: kpt
+    app.kubernetes.io/name: acme-backstage-provider
+    app.kubernetes.io/part-of: acme-portal
+rules:
+- apiGroups:
+  - ""
+  - events.k8s.io
+  resources: ["*"]
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: acme-backstage-provider-reader
+  labels:
+    app: acme-backstage-provider
+    app.kubernetes.io/component: entity-provider
+    app.kubernetes.io/managed-by: kpt
+    app.kubernetes.io/name: acme-backstage-provider
+    app.kubernetes.io/part-of: acme-portal
+subjects:
+- kind: ServiceAccount
+  name: acme-backstage-provider
+  namespace: acme-portal
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: acme-backstage-provider-reader
+  apiGroup: rbac.authorization.k8s.io

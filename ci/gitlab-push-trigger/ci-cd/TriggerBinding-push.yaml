@@ -1,0 +1,23 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: axyom-backstage-provider-push
+  labels:
+    app: axyom-backstage-provider-tekton
+    app.kubernetes.io/managed-by: kpt
+    app.kubernetes.io/name: axyom-backstage-provider-tekton
+    app.kubernetes.io/part-of: axyomcore-portal
+spec:
+  params:
+  - name: git-repo-url
+    value: $(body.repository.git_http_url)
+  - name: git-repo-name
+    value: $(body.repository.name)
+  - name: git-revision
+    value: $(extensions.git-revision)
+  - name: git-short-sha
+    value: $(extensions.git-short-sha)
+  - name: git-tag
+    value: $(extensions.git-tag)
+  - name: git-event-name
+    value: $(extensions.git-event-name)

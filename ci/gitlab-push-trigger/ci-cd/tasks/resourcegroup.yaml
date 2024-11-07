@@ -1,0 +1,12 @@
+apiVersion: kpt.dev/v1alpha1
+kind: ResourceGroup
+metadata:
+  name: inventory-13978727
+  namespace: axyomcore-portal
+  labels:
+    cli-utils.sigs.k8s.io/inventory-id: 471eb82072bbef066779029adf3c3295b8253a6f-1727721829280145229
+    app.kubernetes.io/component: tekton-task
+    app.kubernetes.io/managed-by: kpt
+    app.kubernetes.io/part-of: axyomcore-portal
+    app: axyom-backstage-provider-tekton
+    app.kubernetes.io/name: axyom-backstage-provider-tekton

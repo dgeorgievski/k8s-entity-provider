@@ -1,0 +1,13 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: axyom-backstage-provider
+  labels:
+    app: axyom-backstage-provider-tekton
+    app.kubernetes.io/managed-by: kpt
+    app.kubernetes.io/name: axyom-backstage-provider-tekton
+    app.kubernetes.io/part-of: axyomcore-portal
+spec:
+  serviceAccountName: pipeline
+  triggers:
+    - triggerRef: axyom-backstage-provider-push
