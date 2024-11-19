@@ -9,8 +9,6 @@ use kube::{core::DynamicObject, ResourceExt};
 use anyhow::Result;
 use std::fmt;
 use crate::configuration::{BackstageSettings, Settings};
-// use serde_aux::field_attributes::deserialize_number_from_string;
-// use std::convert::{TryFrom, TryInto};
 
 const BACKSTAGE_DEFAULT_OWNER: &str = "platform"; 
 const BACKSTAGE_ENTITY_API_VERSION: &str = "backstage.io/v1alpha1";
@@ -24,12 +22,12 @@ const BACKSTAGE_ENTITY_NONE: &str = "none";
 const BACKSTAGE_ANN_LABEL_SELECTOR: &str = "backstage.io/kubernetes-label-selector";
 const BACKSTAGE_ANN_NAMESPACE: &str = "backstage.io/kubernetes-namespace";
 const AXYOMCORE_ANN_CLUSTER: &str = "acme.com/kubernetes-cluster";
-const REDIS_LABEL_CLUSTER: &str = "postgres.acme.com/name";
+const REDIS_LABEL_CLUSTER: &str = "redis.acme.com/name";
 const REDIS_LABEL_SHARD: &str = "shard.acme.com/name";
 const REDIS_LABEL_K8S_NAME: &str = "app.kubernetes.io/component";
 
 // custom annotations to convey state
-const AXYOM_ANN_REDIS_STATUS: &str = "backstage.acme.com/postgres-status";
+const AXYOM_ANN_REDIS_STATUS: &str = "backstage.acme.com/redis-status";
 
 /*
 See https://backstage.io/docs/features/software-catalog/descriptor-format
@@ -213,7 +211,7 @@ impl Component {
     
                 // add annotations that assoiate Entities to k8s Resources
                 if label.eq(REDIS_LABEL_SHARD) {
-                    // backstage.io/kubernetes-label-selector: shard.acme.com/name: tenant-smf-smfpostgres-0
+                    // backstage.io/kubernetes-label-selector: shard.acme.com/name: tenant-smf-smfredis-0
                     anns.insert(BACKSTAGE_ANN_LABEL_SELECTOR.to_string(), 
                         format!("{0:}={1:}", 
                         label,
@@ -225,8 +223,8 @@ impl Component {
                 }
     
                 // check if sts is a Redis cluster
-                if label.eq(REDIS_LABEL_K8S_NAME) && val.eq("postgres-cluster") {
-                    spec_type = String::from("postgres-cluster")
+                if label.eq(REDIS_LABEL_K8S_NAME) && val.eq("redis-cluster") {
+                    spec_type = String::from("redis-cluster")
                 }
             }
     
@@ -292,7 +290,7 @@ impl Resource {
     }
  
     // Converts k8s StatefulSet to Backstage Resource
-    pub fn postgres_shard_from_statefulset(config: &Settings, 
+    pub fn redis_shard_from_statefulset(config: &Settings, 
         obj: &DynamicObject) -> Result<Self, EntityError> {
         // validations
         //check if StatefulSet
@@ -338,7 +336,7 @@ impl Resource {
             });
         }
 
-        // let mut postgres_system: Option<String> = None;
+        // let mut redis_system: Option<String> = None;
         let mut shard_dependency_of: Option<Vec<String>> = None;
         for (label, val) in obj.labels() {
             // copy k8s labels
@@ -346,10 +344,10 @@ impl Resource {
 
             if label.eq(REDIS_LABEL_CLUSTER) {
                 // let cl_lower = val.to_lowercase().clone();
-                // postgres_system = if cl_lower.contains("upf") {
-                //      Some(format!("upf-postgres-{}", config.cluster.clone()))
+                // redis_system = if cl_lower.contains("upf") {
+                //      Some(format!("upf-redis-{}", config.cluster.clone()))
                 // }else if cl_lower.contains("smf") {
-                //     Some(format!("smf-postgres-{}", config.cluster.clone()))
+                //     Some(format!("smf-redis-{}", config.cluster.clone()))
                 // }else{
                 //     None
                 // };
@@ -362,7 +360,7 @@ impl Resource {
 
             // add annotations that assoiate Entities to k8s Resources
             if label.eq(REDIS_LABEL_SHARD) {
-                // backstage.io/kubernetes-label-selector: shard.acme.com/name: tenant-smf-smfpostgres-0
+                // backstage.io/kubernetes-label-selector: shard.acme.com/name: tenant-smf-smfredis-0
                 anns.insert(BACKSTAGE_ANN_LABEL_SELECTOR.to_string(), 
                     format!("{0:}={1:}", 
                     label,
@@ -374,8 +372,8 @@ impl Resource {
             }
 
             // check if sts is a Redis cluster
-            if label.eq(REDIS_LABEL_K8S_NAME) && val.eq("postgres-cluster") {
-                spec_type = String::from("postgres-cluster-shard")
+            if label.eq(REDIS_LABEL_K8S_NAME) && val.eq("redis-cluster") {
+                spec_type = String::from("redis-cluster-shard")
             }
         }
 
@@ -383,8 +381,8 @@ impl Resource {
         anns.insert(AXYOMCORE_ANN_CLUSTER.into(), config.cluster.clone());
 
         let status_anns = match spec_type.as_str() {
-            "postgres-cluster-shard" => {
-                Self::postgres_status_from_statefulset(&obj)
+            "redis-cluster-shard" => {
+                Self::redis_status_from_statefulset(&obj)
             },
             _ => None
         };
@@ -411,7 +409,7 @@ impl Resource {
             spec: ResourceSpec {
                 r#type: spec_type,
                 owner: BACKSTAGE_DEFAULT_OWNER.to_owned(),
-                // system: postgres_system,
+                // system: redis_system,
                 dependency_of: shard_dependency_of,
                 ..Default::default()
             }
@@ -419,24 +417,24 @@ impl Resource {
     }
 
     // Create Redis cluster Resource from Redis Shard Resource
-    pub fn postgres_cluster_from_shard(config: &Settings, postgres: Resource) -> Result<Self, EntityError> {
+    pub fn redis_cluster_from_shard(config: &Settings, redis: Resource) -> Result<Self, EntityError> {
         // links Redis cluster to its shards - entity:namespace
         let en_ref_prefix = String::from("resource:default");
-        let mut m = postgres.metadata;
+        let mut m = redis.metadata;
         let mut depends_on: Option<Vec<String>> = None;
         let mut cluster_labels = m.labels.clone().unwrap();
         cluster_labels.remove(REDIS_LABEL_CLUSTER);
 
-        let mut postgres_system: Option<String> = None;
+        let mut redis_system: Option<String> = None;
         match &m.labels {
             Some(labels) => {
                 if let Some(cluster) = labels.get(REDIS_LABEL_CLUSTER) {
                     m.name = cluster.to_string();
                     let cl_lower = cluster.to_lowercase().clone();
-                    postgres_system = if cl_lower.contains("upf") {
-                        Some(format!("upf-postgres-{}", config.cluster.clone()))
+                    redis_system = if cl_lower.contains("upf") {
+                        Some(format!("upf-redis-{}", config.cluster.clone()))
                     }else if cl_lower.contains("smf") {
-                        Some(format!("smf-postgres-{}", config.cluster.clone()))
+                        Some(format!("smf-redis-{}", config.cluster.clone()))
                     }else{
                         None
                     };
@@ -453,7 +451,7 @@ impl Resource {
                 return Err(EntityError{ 
                     kind: BACKSTAGE_ENTITY_RESOURCE.to_owned(),
                     name: m.name.clone(),
-                    message: "Resource lacks postgres labels".to_owned(),
+                    message: "Resource lacks redis labels".to_owned(),
                 })
             },
         }
@@ -464,9 +462,9 @@ impl Resource {
             kind: BACKSTAGE_ENTITY_RESOURCE.to_string(),
             metadata: m,
             spec: ResourceSpec {
-                r#type: "postgres-cluster".to_owned(),
+                r#type: "redis-cluster".to_owned(),
                 owner: String::from(BACKSTAGE_DEFAULT_OWNER.to_owned()),
-                system: postgres_system,
+                system: redis_system,
                 depends_on,
                 ..Default::default()
             }
@@ -474,13 +472,13 @@ impl Resource {
     }
 
     // extract status of a Redis StatefulSet cluster
-    fn postgres_status_from_statefulset(obj: &DynamicObject) -> Option<String> {
+    fn redis_status_from_statefulset(obj: &DynamicObject) -> Option<String> {
         match obj.data.get("status") {
             Some(Value::Object(status)) => {
                 match serde_json::to_string(status){
                     Ok(st) => Some(st),
                     Err(why) => {
-                        tracing::error!("failed to extract postgres status {}", why);
+                        tracing::error!("failed to extract redis status {}", why);
                         None
                     }
                 }
@@ -495,7 +493,7 @@ impl Resource {
     }
 
     // Create Redis Cluster Node Resource fro a k8s Pod 
-    pub fn postgres_node_from_pod(config: &Settings, 
+    pub fn redis_node_from_pod(config: &Settings, 
         obj: &DynamicObject) -> Result<Self, EntityError> {
         // validations
         let bsc = &config.backstage;
@@ -540,7 +538,7 @@ impl Resource {
                 return Err(EntityError{ 
                     kind: BACKSTAGE_ENTITY_RESOURCE.to_owned(),
                     name: m.name.clone(),
-                    message: "Resource lacks postgres labels".to_owned(),
+                    message: "Resource lacks redis labels".to_owned(),
                 })
             },
         }
@@ -550,7 +548,7 @@ impl Resource {
             kind: BACKSTAGE_ENTITY_RESOURCE.to_string(),
             metadata: m,
             spec: ResourceSpec {
-                r#type: "postgres-cluster-node".to_owned(),
+                r#type: "redis-cluster-node".to_owned(),
                 owner: BACKSTAGE_DEFAULT_OWNER.to_owned(),
                 dependency_of,
                 ..Default::default()
@@ -752,13 +750,13 @@ impl System {
                 return Err(EntityError{ 
                     kind: BACKSTAGE_ENTITY_SYSTEM.to_owned(),
                     name: obj.name_any().clone(),
-                    message: "Statefulset lacks postgres cluster label".to_owned(),
+                    message: "Statefulset lacks redis cluster label".to_owned(),
                 });
             }
         };
 
         let nm_lcase = name.to_lowercase();
-        let postgres_system = if nm_lcase.contains("smf") {
+        let redis_system = if nm_lcase.contains("smf") {
             Some(String::from("smf"))
         } else if nm_lcase.contains("upf") {
             Some(String::from("upf"))
@@ -766,11 +764,11 @@ impl System {
             return Err(EntityError{ 
                 kind: BACKSTAGE_ENTITY_SYSTEM.to_owned(),
                 name: obj.name_any().clone(),
-                message: "postgres cluster label missing system".to_owned(),
+                message: "redis cluster label missing system".to_owned(),
             });
         };
-        // smf-postgres-cicd
-        let system_name = format!("{}-postgres-{}", postgres_system.clone().unwrap(), 
+        // smf-redis-cicd
+        let system_name = format!("{}-redis-{}", redis_system.clone().unwrap(), 
                                             config.cluster.clone());
 
         Ok(Self {  
@@ -780,7 +778,7 @@ impl System {
             spec: SystemSpec {
                 r#type: Some("service".to_owned()),
                 owner: String::from(BACKSTAGE_DEFAULT_OWNER.to_owned()),
-                domain: postgres_system,
+                domain: redis_system,
                 ..Default::default()
             }
         })

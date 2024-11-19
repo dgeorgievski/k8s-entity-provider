@@ -107,22 +107,25 @@ pub async fn watch(conf: &Settings, k8s_version: String) -> Result<EventsChannel
                 loop {
                     let cmds: Vec<WatchCommand> = match stream_all.try_next().await {
                             Ok(sel_event) => {
+                                // TODO test new watch::Event types
                                 match sel_event {
-                                    Some(SelectedEvents::Applied(watcher::Event::Applied(o))) => {
+                                    Some(SelectedEvents::Applied(watcher::Event::Apply(o))) => {
                                         println!(" >> SEL add {:?}", o.name_any());
                                         dbg!(&o.types);
                                         vec![WatchCommand::Add(o)]
                                     },
-                                    Some(SelectedEvents::Deleted(watcher::Event::Deleted(o))) => {
+                                    Some(SelectedEvents::Deleted(watcher::Event::Delete(o))) => {
                                         println!(" >> SEL del {:?}", o.name_any());
                                         vec![WatchCommand::Delete(o)]
                                     },
-                                    Some(SelectedEvents::Restarted(watcher::Event::Restarted(objs))) => {
+                                    Some(SelectedEvents::Restarted(watcher::Event::InitApply(o))) => {
                                         let mut cmds: Vec<WatchCommand> = Vec::new();
-                                        for o in objs.iter() {
-                                            println!(" >> SEL res {:?} types: {:?}", &o.name_any(), &o.types);
-                                            cmds.push(WatchCommand::Add(o.clone()));
-                                        }
+                                        // for o in objs.iter() {
+                                        //     println!(" >> SEL res {:?} types: {:?}", &o.name_any(), &o.types);
+                                        //     cmds.push(WatchCommand::Add(o.clone()));
+                                        // }
+                                        println!(" >> SEL res {:?} types: {:?}", &o.name_any(), &o.types);
+                                        cmds.push(WatchCommand::Add(o.clone()));
                                         cmds
                                     },
                                     _ => {

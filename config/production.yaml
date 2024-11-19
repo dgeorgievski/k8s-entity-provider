@@ -1,7 +1,7 @@
 # k8s cluster name
 name: acme-backstage-provider
 display: Example Backstage Entity Provider
-cluster: mars
+cluster: pluto
 
 server: 
   port: 8000
@@ -14,7 +14,7 @@ backstage:
     - apiVersion: backstage.io/v1alpha1
       kind: Group
       metadata:
-        name: acme-core
+        name: acme-team
         description: The Example company
         links:
           - url: https://example.com/
@@ -22,7 +22,7 @@ backstage:
       spec:
         type: organization
         profile:
-          displayName: Axyom.Core
+          displayName: ACME
         children: ["platform"]
     - apiVersion: backstage.io/v1alpha1
       kind: Group
@@ -36,13 +36,13 @@ backstage:
         type: team
         profile:
           displayName: Platform
-        parent: acme-core 
+        parent: acme-team 
         children: []
   users:
     - apiVersion: backstage.io/v1alpha1
-      kind: Group
+      kind: User
       metadata:
-        name: dimitar.georgievski
+        name: dgeorgievski
       spec: 
         profile:
           display: Dimitar Georgievski
@@ -52,19 +52,21 @@ backstage:
     - apiVersion: backstage.io/v1alpha1
       kind: Domain
       metadata:
-        name: smf
+        name: DevOps
         description: Everything related to ACME 
         links:
-          - url: https://acme.net/
-            title: Acme main site
+          - url: https://acme.net/devops
+            title: Acme DevOps main site
       spec:
         owner: platform
 
+# not used at the moment
 nats:
   proxy_url: http://localhost:8080/api/v1/event
 
 kube:
   use_tls: false
+  # event_types are CloudEvent types. Not used at the moment.
   resources:
     - name: deployment
       namespaces:
@@ -77,13 +79,13 @@ kube:
     - name: pod
       namespaces: []
       label_selectors:
-        - app.kubernetes.io/component=postgres-cluster
+        - app.kubernetes.io/component=redis-cluster
       field_selectors: []
       event_type: "acme.portal.backstage.pod.v1"
 
     - name: statefulsets
       namespaces: []
       label_selectors:
-        - app.kubernetes.io/component=postgres-cluster
+        - app.kubernetes.io/component=redis-cluster
       field_selectors: []
       event_type: "acme.portal.backstage.sts.v1"

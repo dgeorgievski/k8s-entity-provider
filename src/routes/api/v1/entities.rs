@@ -1,16 +1,11 @@
 use std::collections::HashMap;
 
 use actix_web::{web, Result, Responder};
-// use actix_web::{http::header::ContentType, 
-//         web, 
-//         HttpResponse};
-// use kube::api::DynamicObject;
 use kube::ResourceExt;
 use serde_json::Value;
 use crate::backstage::entities;
 use crate::configuration::Settings;
 use crate::ax_types::Db;
-// use crate::backstage::entities::{Group, User, BackstageEntity};
 
 #[derive(Debug)]
 pub enum K8sKinds {

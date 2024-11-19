@@ -46,64 +46,64 @@ data:
     # k8s cluster name
     name: acme-backstage-provider
     display: Acme Backstage Entity Provider
-    cluster: cicd
+    cluster: pluto
 
     server:
       port: 8000
       host: 0.0.0.0
 
-    backstage:
-      name: acme-portal
-      annnotations: {}
-      groups:
-        - apiVersion: backstage.io/v1alpha1
-          kind: Group
-          metadata:
-            name: acme
-            description: The Acme company
-            links:
-              - url: https://acme.net/
-                title: Website
-          spec:
-            type: organization
-            profile:
-              displayName: Axyom.Core
-            children: ["platform"]
-        - apiVersion: backstage.io/v1alpha1
-          kind: Group
-          metadata:
-            name: platform
-            description: Platform team
-            links:
-              - url: https://github.com/acme
-                title: GitHub Acme root
-          spec:
-            type: team
-            profile:
-              displayName: Platform
-            parent: acme
-            children: []
-      users:
-        - apiVersion: backstage.io/v1alpha1
-          kind: User
-          metadata:
-            name: dimitar.georgievski
-          spec:
-            profile:
-              displayName : Dimitar Georgievski
-              email: dgeorgievski@acme.com
-            member_of: ["platform"]
-      domains:
-        - apiVersion: backstage.io/v1alpha1
-          kind: Domain
-          metadata:
-            name: Example
-            description: Everything related to Example
-            links:
-              - url: https://acme.net/example
-                title: Main example page
-          spec:
-            owner: platform
+      backstage:
+        name: acme-portal
+        annnotations: {} 
+        groups: 
+          - apiVersion: backstage.io/v1alpha1
+            kind: Group
+            metadata:
+              name: acme-team
+              description: The Example company
+              links:
+                - url: https://example.com/
+                  title: Website
+            spec:
+              type: organization
+              profile:
+                displayName: ACME
+              children: ["platform"]
+          - apiVersion: backstage.io/v1alpha1
+            kind: Group
+            metadata:
+              name: platform
+              description: Platform team
+              links:
+                - url: https://github.com/example
+                  title: GitHub example root
+            spec:
+              type: team
+              profile:
+                displayName: Platform
+              parent: acme-team 
+              children: []
+        users:
+          - apiVersion: backstage.io/v1alpha1
+            kind: User
+            metadata:
+              name: dgeorgievski
+            spec: 
+              profile:
+                display: Dimitar Georgievski
+                email: dgeorgievski@example.com
+              member_of: ["platform"]
+        domains:
+          - apiVersion: backstage.io/v1alpha1
+            kind: Domain
+            metadata:
+              name: DevOps
+              description: Everything related to ACME 
+              links:
+                - url: https://acme.net/devops
+                  title: Acme DevOps main site
+            spec:
+              owner: platform
 
     kube:
       use_tls: false
