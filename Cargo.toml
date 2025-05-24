@@ -1,5 +1,5 @@
 [package]
-name = "acme_backstage_provider"
+name = "k8s_entity_provider"
 version = "0.2.0"
 edition = "2021"
 
@@ -33,6 +33,7 @@ regex = {version = "1.11.1"}
 # cloudevents-sdk = { version = "0.7.0", features = ["reqwest"]}
 # chrono = { version = "0.4"}
 http = { version = "1.1.0"}
+thiserror = "2.0.12"
 
 [dev-dependencies]
 reqwest = { version = "0.12.9", features = ["json"] }

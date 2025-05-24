@@ -1,9 +1,9 @@
-use acme_backstage_provider::startup::run;
-use acme_backstage_provider::ax_types::Db;
-use acme_backstage_provider::configuration::get_configuration;
-use acme_backstage_provider::telemetry::{get_subscriber, init_subscriber};
-use acme_backstage_provider::ax_kube::{utils, watch::watch};
-use acme_backstage_provider::backstage::ingest;
+use k8s_entity_provider::startup::run;
+use k8s_entity_provider::ax_types::Db;
+use k8s_entity_provider::configuration::get_configuration;
+use k8s_entity_provider::telemetry::{get_subscriber, init_subscriber};
+use k8s_entity_provider::ax_kube::{utils, watch::watch};
+use k8s_entity_provider::backstage::ingest;
 use std::net::TcpListener;
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
@@ -13,10 +13,10 @@ async fn main() -> std::io::Result<()> {
     // Shared cache across threads
     let cache: Db = Arc::new(Mutex::new(BTreeMap::new()));
 
-    let subscriber = get_subscriber("axyom-backstage-provider".into(), "info".into(), std::io::stdout);
+    let config = get_configuration().expect("Failed to read configuration.");
+    let subscriber = get_subscriber(config.name.clone(), "info".into(), std::io::stdout);
     init_subscriber(subscriber); 
 
-    let config = get_configuration().expect("Failed to read configuration.");
     let k8s_version = match utils::get_k8s_version(&config).await {
         Ok(sv) => {
             format!("{0}.{1}", sv.major, sv.minor)

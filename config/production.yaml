@@ -1,5 +1,5 @@
 # k8s cluster name
-name: acme-backstage-provider
+name: k8s-backstage-provider
 display: Example Backstage Entity Provider
 cluster: pluto
 

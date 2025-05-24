@@ -1,5 +1,5 @@
 # k8s cluster name
-name: acme-backstage-provider
+name: k8s-entity-provider
 display: example Backstage Entity Provider
 cluster: apple
 

@@ -1,10 +1,10 @@
 # k8s cluster name
-name: acme-backstage-provider
+name: k8s-entity-provider
 display: Example Backstage Entity Provider
 cluster: mars
 
 server: 
-  port: 7000
+  port: 7080
   host: 0.0.0.0
   
 backstage:
@@ -70,16 +70,15 @@ kube:
   resources:
     - name: deployment
       namespaces:
-        - acme
-      label_selectors:
-        - app.kubernetes.io/part-of=acme
+        - argocd
+      label_selectors: []
       field_selectors: []
       event_type: "acme.portal.backstage.deployment.v1"   
       
     - name: pod
-      namespaces: []
-      label_selectors:
-        - app.kubernetes.io/component=redis-cluster
+      namespaces:
+        - crossplane-system      
+      label_selectors: []
       field_selectors: []
       event_type: "acme.portal.backstage.pod.v1"
 
