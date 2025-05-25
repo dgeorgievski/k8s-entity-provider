@@ -13,7 +13,7 @@ async fn main() -> std::io::Result<()> {
     // Shared cache across threads
     let cache: Db = Arc::new(Mutex::new(BTreeMap::new()));
 
-    let config = get_configuration().expect("Failed to read configuration.");
+    let config = get_configuration().expect("Failed to read configuration");
     let subscriber = get_subscriber(config.name.clone(), "info".into(), std::io::stdout);
     init_subscriber(subscriber); 
 
