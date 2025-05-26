@@ -7,8 +7,10 @@ use crate::backstage::entities;
 use crate::errors::{ConfigError, Result};
 #[derive(serde::Deserialize, Debug, Clone)]
 pub struct Settings {
+    // agent name
     pub name: String,
     pub display: String,
+    // cluster name
     pub cluster: String,
     pub server: ServerSettings,
     pub backstage: BackstageSettings,
@@ -572,21 +574,22 @@ pub fn get_configuration() -> Result<Settings> {
 
     if !env_file_path.exists() {
         tracing::warn!(
-            "Environment configuration file not found: {:?}. Using only base settings.",
+            "Configuration file not found: {:?}",
             env_file_path
         );
+
+        return Err(ConfigError::IoError(
+            std::io::Error::new(
+                std::io::ErrorKind::NotFound, 
+                format!("Configuration file not found: {:?}", env_file_path)
+            )
+        ).into());
     }
 
     // Build configuration
     let builder = config::Config::builder()
-        .add_source(config::File::from(base_file_path));
-
-    // Add environment-specific file if it exists
-    let builder = if env_file_path.exists() {
-        builder.add_source(config::File::from(env_file_path))
-    } else {
-        builder
-    };
+        .add_source(config::File::from(base_file_path))
+        .add_source(config::File::from(env_file_path));
 
     // Add environment variables
     let settings = builder

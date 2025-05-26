@@ -6,6 +6,18 @@ cluster: apple
 server:
   port: 8000
   host: 0.0.0.0
+  cors:
+    enabled: true
+    # allowed_origins: ["*"]
+    allow_all_origins: true
+    allow_methods: "GET, POST, PUT, DELETE, OPTIONS"
+    allow_headers: "Content-Type, Authorization"
+    allow_credentials: true
+    max_age: 3600
+  rate_limit:
+    enabled: true
+    max_requests: 2000
+    window_seconds: 60
   
 backstage:
   name: example-portal
