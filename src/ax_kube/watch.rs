@@ -33,7 +33,7 @@ pub struct EventsChannels {
 pub async fn watch(conf: &Settings, k8s_version: String) -> Result<EventsChannels> {
     let (tx, rx): (Sender<WatchEvent>, Receiver<WatchEvent>) = channel(32);
 
-    let cli = match client::client(conf.kube.use_tls).await {
+    let cli = match client::client(&conf.kube).await {
         Err(why) => {
             tracing::error!("k8s Client failed {:?}", why);
             return Err(why.into())
@@ -160,7 +160,7 @@ pub async fn watch(conf: &Settings, k8s_version: String) -> Result<EventsChannel
 
 // Check if k8s resources is still ready in the cluster.
 pub async fn check_objects(objs: Vec<DynamicObject>, conf: &Settings) -> Result<Vec<DynamicObject>> {
-    let cli = match client::client(conf.kube.use_tls).await {
+    let cli = match client::client(&conf.kube).await {
             Err(why) => {
                 tracing::error!("k8s Client failed {:?}", why);
                 return Err(why.into())

@@ -12,7 +12,7 @@ pub struct ServerVersion {
 }
 
 pub async fn get_k8s_version(conf: &Settings) -> Result<ServerVersion>{
-    let cli = match client::client(conf.kube.use_tls).await {
+    let cli = match client::client(&conf.kube).await {
         Err(why) => {
             tracing::error!("k8s Client failed {:?}", why);
             return Err(why.into())

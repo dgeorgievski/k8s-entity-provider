@@ -18,6 +18,8 @@ server:
     enabled: true
     max_requests: 2000
     window_seconds: 60
+    requests_per_second: 100
+    burst_size: 200
   
 backstage:
   name: example-portal
