@@ -44,7 +44,10 @@ async fn main() -> std::io::Result<()> {
         config.server.port
     );
     let listener = TcpListener::bind(address)?;
-    run(listener, &config, cache.clone())?.await?;
+    match run(listener, &config, cache.clone()).await {
+        Ok(_) => tracing::info!("Server gracefully shut down"),
+        Err(e) => tracing::error!("Server shutdown timed out: {}", e),
+    }
 
     Ok(())
 }
